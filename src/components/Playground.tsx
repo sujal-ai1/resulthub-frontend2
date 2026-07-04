@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
-    Info, AlertTriangle, ChevronRight, RotateCcw, CheckCircle2, Pencil, MinusCircle,
-    Sparkles, TrendingUp, Zap, FlaskConical, Goal, TriangleAlert, PartyPopper,
+    Info, AlertTriangle, ChevronRight, RotateCcw, MinusCircle,
+    TrendingUp, Zap, FlaskConical, Goal, TriangleAlert, PartyPopper,
 } from 'lucide-react';
 import { Student } from '@/lib/data';
 import { formatGrade } from '@/lib/utils';
+import { PlaygroundIntroModal } from '@/components/PlaygroundIntroModal';
 
 interface PlaygroundProps {
     student: Student;
@@ -69,155 +70,6 @@ export interface SubjectWithCredits {
     credits: number;
 }
 
-// ── Toggle Switch ─────────────────────────────────────────
-function Switch({ checked, onChange, label }: { checked: boolean; onChange: (v: boolean) => void; label?: string }) {
-    return (
-        <label className="switch" title={label} aria-label={label}>
-            <input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} />
-            <span className="switch-track" />
-        </label>
-    );
-}
-
-// ── Setup Step (credit entry) ──────────────────────────────
-interface SetupProps {
-    semesters: Array<{
-        semester: number | string;
-        sgpa: number;
-        subjects: Array<{ subject_code: string; grade: string; marks: number | string }>;
-    }>;
-    creditMap: Record<string, number>;
-    touchedFields: Set<string>;
-    onCreditChange: (code: string, val: number) => void;
-    onConfirm: () => void;
-    isPredicted: boolean;
-}
-
-function CreditSetupStep({ semesters, creditMap, touchedFields, onCreditChange, onConfirm, isPredicted }: SetupProps) {
-    const sorted = [...semesters].sort((a, b) => Number(a.semester) - Number(b.semester));
-    const totalSubjects = semesters.reduce((s, sem) => s + (sem.subjects || []).length, 0);
-    const allFilled = totalSubjects > 0 && touchedFields.size >= totalSubjects;
-
-    return (
-        <div>
-            <div className="inline-flex items-start gap-2 p-3 rounded-lg mb-4"
-                style={{ backgroundColor: isPredicted ? 'var(--success-bg)' : 'var(--accent-light)', borderColor: isPredicted ? 'var(--success)' : 'var(--accent)', border: '1px solid' }}>
-                {isPredicted ? (
-                    <Sparkles size={15} style={{ color: 'var(--success)', flexShrink: 0, marginTop: 1 }} />
-                ) : (
-                    <Info size={15} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
-                )}
-                <p className="text-xs leading-relaxed" style={{ color: isPredicted ? 'var(--success)' : 'var(--accent)' }}>
-                    {isPredicted
-                        ? 'Credits have been auto-predicted from subject codes. Review and correct if needed, then enter the playground.'
-                        : 'Enter the credits for each subject from your marksheet — then we\'ll calculate exactly how your edits affect your CGPA.'}
-                </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-                {sorted.map(sem => {
-                    const subs = sem.subjects || [];
-
-                    return (
-                        <div key={sem.semester} className="card overflow-hidden">
-                            <div className="flex items-center justify-between px-3 py-1.5 border-b"
-                                style={{ borderColor: 'var(--border)', backgroundColor: 'var(--background)' }}>
-                                <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-                                    Semester {sem.semester}
-                                </span>
-                                {sem.sgpa > 0 && (
-                                    <span className="font-black text-sm"
-                                        style={{ color: sem.sgpa >= 8 ? 'var(--success)' : sem.sgpa >= 6 ? 'var(--warning)' : 'var(--danger)' }}>
-                                        {formatGrade(sem.sgpa, 2)}
-                                    </span>
-                                )}
-                            </div>
-
-                            <table className="w-full data-table data-table-compact">
-                                <thead>
-                                    <tr>
-                                        <th className="text-left">Subject</th>
-                                        <th className="text-center w-12">Grade</th>
-                                        <th className="text-right w-16">Credits</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {subs.map(sub => {
-                                        const isTouched = touchedFields.has(sub.subject_code);
-                                        const val = isTouched ? (creditMap[sub.subject_code] ?? 0) : '';
-                                        const predicted = predictCredits(sub.subject_code);
-                                        const isZeroCredit = predicted === 0;
-                                        return (
-                                            <tr key={sub.subject_code} style={{ opacity: isZeroCredit ? 0.45 : 1 }}>
-                                                <td>
-                                                    <span className="mono" style={{ color: 'var(--text-primary)' }}>
-                                                        {sub.subject_code}
-                                                    </span>
-                                                    {isZeroCredit && (
-                                                        <span className="text-[9px] ml-1 px-1 py-0.5 rounded"
-                                                            style={{ backgroundColor: 'var(--surface-elevated)', color: 'var(--text-muted)' }}>
-                                                            audit
-                                                        </span>
-                                                    )}
-                                                </td>
-                                                <td className="text-center">
-                                                    <span className="text-xs font-bold" style={{ color: gradeColor(sub.grade) }}>
-                                                        {sub.grade}
-                                                    </span>
-                                                </td>
-                                                <td className="text-right">
-                                                    <input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        pattern="[0-9]*"
-                                                        placeholder="cr"
-                                                        value={val}
-                                                        onChange={e => {
-                                                            const raw = e.target.value.replace(/[^0-9]/g, '');
-                                                            if (raw === '') {
-                                                                onCreditChange(sub.subject_code, -1);
-                                                            } else {
-                                                                const n = parseInt(raw, 10);
-                                                                if (n >= 0 && n <= 10) {
-                                                                    onCreditChange(sub.subject_code, n);
-                                                                }
-                                                            }
-                                                        }}
-                                                        className="w-10 text-center text-xs font-mono rounded border py-0.5 px-1 focus:outline-none"
-                                                        style={{
-                                                            backgroundColor: 'var(--surface-elevated)',
-                                                            borderColor: isTouched ? 'var(--success)' : 'var(--border)',
-                                                            color: 'var(--text-primary)',
-                                                        }}
-                                                    />
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <button
-                onClick={onConfirm}
-                disabled={!allFilled}
-                className="w-full mt-4 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-all"
-                style={{
-                    backgroundColor: allFilled ? 'var(--accent)' : 'var(--surface-elevated)',
-                    color: allFilled ? '#fff' : 'var(--text-muted)',
-                    cursor: allFilled ? 'pointer' : 'not-allowed',
-                }}
-            >
-                <CheckCircle2 size={16} />
-                {allFilled ? 'Enter Playground →' : 'Fill in all credits to continue'}
-            </button>
-        </div>
-    );
-}
-
 // ── Best Drop Recommendation ──────────────────────────────
 export interface DropRecommendation {
     subject_code: string;
@@ -271,6 +123,44 @@ export function computeBestDrop(subjects: SubjectWithCredits[], officialCGPA: nu
     return null;
 }
 
+// Best pair of subjects to drop (always returns the top 2, regardless of
+// whether the caller has already edited grades — recompute against
+// whatever "points" each subject is currently carrying).
+interface DropPairRecommendation {
+    codes: string[];
+    cgpaDelta: number;
+    newCGPA: number;
+}
+
+function computeBestDropPair(
+    subjects: { subject_code: string; credits: number; points: number }[],
+    officialCGPA: number,
+    maxDrops: number = 2,
+): DropPairRecommendation | null {
+    const eligible = subjects.filter(s => s.credits > 0);
+    if (eligible.length <= maxDrops) return null;
+
+    let fullPts = 0, fullCreds = 0;
+    eligible.forEach(s => { fullPts += s.points * s.credits; fullCreds += s.credits; });
+    const baseAvg = fullCreds > 0 ? fullPts / fullCreds : officialCGPA;
+
+    let best: { codes: string[]; delta: number } | null = null;
+    for (let i = 0; i < eligible.length; i++) {
+        for (let j = i + 1; j < eligible.length; j++) {
+            const a = eligible[i], b = eligible[j];
+            const afterCreds = fullCreds - (a.credits + b.credits);
+            if (afterCreds <= 0) continue;
+            const afterPts = fullPts - (a.points * a.credits + b.points * b.credits);
+            const delta = (afterPts / afterCreds) - baseAvg;
+            if (!best || delta > best.delta) {
+                best = { codes: [a.subject_code, b.subject_code], delta };
+            }
+        }
+    }
+    if (!best) return null;
+    return { codes: best.codes, cgpaDelta: best.delta, newCGPA: officialCGPA + best.delta };
+}
+
 // ── Playground CGPA engine ─────────────────────────────────
 // Recomputes overall CGPA from per-subject grade edits and/or dropped
 // subjects, anchored as a delta against the official CGPA so small
@@ -286,6 +176,7 @@ function computePlayground(
     semesters: PlaygroundSemester[],
     droppedSubjects: string[],
     gradeOverrides: Record<string, number>,
+    creditOverrides: Record<string, number>,
     officialCGPA: number,
 ) {
     let baseWeighted = 0, baseCredits = 0;
@@ -298,8 +189,9 @@ function computePlayground(
             fullCreds += sub.credits;
             if (!droppedSubjects.includes(sub.subject_code)) {
                 const effGp = gradeOverrides[sub.subject_code] ?? baseGp;
-                afterPts += effGp * sub.credits;
-                afterCreds += sub.credits;
+                const effCredit = creditOverrides[sub.subject_code] ?? sub.credits;
+                afterPts += effGp * effCredit;
+                afterCreds += effCredit;
             }
         });
 
@@ -552,21 +444,34 @@ function GoalPlanner({ currentCGPA, creditsSoFar, bestSgpa, avgSgpa, avgCredits,
     );
 }
 
-// ── Playground Body (editable SGPA + drop) ────────────────
+// ── Playground Body (editable grade + credits + drop) ─────
 interface BodyProps {
     semesters: PlaygroundSemester[];
     officialCGPA: number;
     creditsCompleted: number;
-    onEdit: () => void;
 }
 
-function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: BodyProps) {
+function PlaygroundBody({ semesters, officialCGPA, creditsCompleted }: BodyProps) {
     const [droppedSubjects, setDroppedSubjects] = useState<string[]>([]);
     const [gradeOverrides, setGradeOverrides] = useState<Record<string, number>>({});
+    const [creditOverrides, setCreditOverrides] = useState<Record<string, number>>({});
     const MAX_DROPS = 2;
 
     const allSubjects = useMemo(() => semesters.flatMap(s => s.subjects.filter(sub => sub.credits > 0)), [semesters]);
-    const recommendation = useMemo(() => computeBestDrop(allSubjects, officialCGPA), [allSubjects, officialCGPA]);
+    const subjectByCode = useMemo(() => new Map(allSubjects.map(s => [s.subject_code, s])), [allSubjects]);
+
+    // Recomputed against whatever grade/credits each subject currently
+    // carries (including any manual edits), so the recommendation stays
+    // relevant even after you've already changed something.
+    const subjectsWithEffPoints = useMemo(() => allSubjects.map(s => ({
+        subject_code: s.subject_code,
+        credits: creditOverrides[s.subject_code] ?? s.credits,
+        points: gradeOverrides[s.subject_code] ?? (GRADE_POINTS[s.grade?.toUpperCase()] ?? 0),
+    })), [allSubjects, gradeOverrides, creditOverrides]);
+    const pairRecommendation = useMemo(
+        () => computeBestDropPair(subjectsWithEffPoints, officialCGPA),
+        [subjectsWithEffPoints, officialCGPA]
+    );
 
     const toggleDrop = (code: string) => {
         setDroppedSubjects(prev => {
@@ -587,17 +492,29 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
         });
     };
 
+    const setCreditOverride = (code: string, credits: number) => {
+        setCreditOverrides(prev => ({ ...prev, [code]: credits }));
+    };
+    const clearCreditOverride = (code: string) => {
+        setCreditOverrides(prev => {
+            const next = { ...prev };
+            delete next[code];
+            return next;
+        });
+    };
+
     const resetAll = () => {
         setDroppedSubjects([]);
         setGradeOverrides({});
+        setCreditOverrides({});
     };
 
     const { perSemester, cgpaDelta, newCGPA, creditsDelta } = useMemo(
-        () => computePlayground(semesters, droppedSubjects, gradeOverrides, officialCGPA),
-        [semesters, droppedSubjects, gradeOverrides, officialCGPA]
+        () => computePlayground(semesters, droppedSubjects, gradeOverrides, creditOverrides, officialCGPA),
+        [semesters, droppedSubjects, gradeOverrides, creditOverrides, officialCGPA]
     );
 
-    const hasChanges = droppedSubjects.length > 0 || Object.keys(gradeOverrides).length > 0;
+    const hasChanges = droppedSubjects.length > 0 || Object.keys(gradeOverrides).length > 0 || Object.keys(creditOverrides).length > 0;
     const creditsSoFar = Math.max(creditsCompleted + creditsDelta, 0);
     const perSemesterMap = useMemo(() => new Map(perSemester.map(p => [String(p.semester), p])), [perSemester]);
 
@@ -612,21 +529,34 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
 
     return (
         <div>
-            {/* Auto-recommendation banner */}
-            {recommendation && !hasChanges && (
+            {/* Auto-recommendation banner — always suggests the best 2 to drop,
+                recalculated against whatever grades are currently in effect */}
+            {pairRecommendation && !(
+                droppedSubjects.length === pairRecommendation.codes.length &&
+                pairRecommendation.codes.every(c => droppedSubjects.includes(c))
+            ) && (
                 <div className="flex items-start gap-2.5 p-3 rounded-xl mb-4"
                     style={{ backgroundColor: 'var(--accent-light)', border: '1px solid var(--accent)' }}>
                     <Zap size={16} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 1 }} />
                     <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>Recommended Drop</p>
+                        <p className="text-xs font-bold mb-0.5" style={{ color: 'var(--accent)' }}>Recommended Drops</p>
                         <p className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                            Drop <strong style={{ color: 'var(--text-primary)' }}>{recommendation.subject_code}</strong>
-                            {' '}(Sem {recommendation.semester} · {recommendation.credits}cr · Grade {recommendation.grade})
-                            {' '}for the biggest improvement: <strong style={{ color: 'var(--success)' }}>+{formatGrade(recommendation.cgpaDelta, 3)}</strong>
-                            {' '}→ {formatGrade(recommendation.newCGPA, 2)} CGPA
+                            Drop{' '}
+                            {pairRecommendation.codes.map((code, i) => {
+                                const sub = subjectByCode.get(code);
+                                return (
+                                    <span key={code}>
+                                        <strong style={{ color: 'var(--text-primary)' }}>{code}</strong>
+                                        {sub && <span style={{ color: 'var(--text-muted)' }}> (Sem {sub.semester} · {sub.credits}cr)</span>}
+                                        {i < pairRecommendation.codes.length - 1 ? ' & ' : ' '}
+                                    </span>
+                                );
+                            })}
+                            for the biggest improvement: <strong style={{ color: 'var(--success)' }}>{pairRecommendation.cgpaDelta >= 0 ? '+' : ''}{formatGrade(pairRecommendation.cgpaDelta, 3)}</strong>
+                            {' '}→ {formatGrade(pairRecommendation.newCGPA, 2)} CGPA
                         </p>
                         <button
-                            onClick={() => toggleDrop(recommendation.subject_code)}
+                            onClick={() => setDroppedSubjects(pairRecommendation.codes)}
                             className="mt-2 text-xs font-bold px-3 py-1 rounded-lg flex items-center gap-1 transition-all"
                             style={{ backgroundColor: 'var(--accent)', color: '#fff' }}>
                             <TrendingUp size={12} /> Apply Recommendation
@@ -659,14 +589,9 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
 
             <div className="flex items-center justify-between mb-3">
                 <p className="text-xs font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                    Change a subject&apos;s grade or drop it <span style={{ color: 'var(--text-muted)' }}>({droppedSubjects.length}/{MAX_DROPS} dropped)</span>
+                    Change a subject&apos;s grade, credits, or drop it <span style={{ color: 'var(--text-muted)' }}>({droppedSubjects.length}/{MAX_DROPS} dropped)</span>
                 </p>
                 <div className="flex items-center gap-2">
-                    <button onClick={onEdit}
-                        className="text-xs flex items-center gap-1 px-2 py-1 rounded-lg"
-                        style={{ color: 'var(--accent)', backgroundColor: 'var(--accent-light)' }}>
-                        <Pencil size={11} /> Edit Credits
-                    </button>
                     {hasChanges && (
                         <button onClick={resetAll}
                             className="text-xs flex items-center gap-1 px-2 py-1 rounded-lg"
@@ -701,7 +626,7 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
                                         <tr>
                                             <th className="text-left">Subject</th>
                                             <th className="text-center w-20">Grade</th>
-                                            <th className="text-right w-14">Credits</th>
+                                            <th className="text-center w-16">Credits</th>
                                             <th className="text-center w-10">Drop</th>
                                         </tr>
                                     </thead>
@@ -709,11 +634,13 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
                                         {sem.subjects.map(sub => {
                                             const isDropped = droppedSubjects.includes(sub.subject_code);
                                             const isMaxed = droppedSubjects.length >= MAX_DROPS && !isDropped;
-                                            const isRecommended = recommendation?.subject_code === sub.subject_code && !hasChanges;
+                                            const isRecommended = !isDropped && (pairRecommendation?.codes.includes(sub.subject_code) ?? false);
                                             const isEligible = sub.credits > 0;
                                             const basePoints = GRADE_POINTS[sub.grade?.toUpperCase()] ?? 0;
                                             const effPoints = gradeOverrides[sub.subject_code] ?? basePoints;
                                             const isGradeChanged = gradeOverrides[sub.subject_code] !== undefined && gradeOverrides[sub.subject_code] !== basePoints;
+                                            const effCredits = creditOverrides[sub.subject_code] ?? sub.credits;
+                                            const isCreditChanged = creditOverrides[sub.subject_code] !== undefined && creditOverrides[sub.subject_code] !== sub.credits;
                                             return (
                                                 <tr
                                                     key={sub.subject_code}
@@ -761,10 +688,34 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
                                                             )}
                                                         </div>
                                                     </td>
-                                                    <td className="text-right">
-                                                        <span className="mono text-xs" style={{ color: 'var(--text-secondary)' }}>
-                                                            {sub.credits}
-                                                        </span>
+                                                    <td className="text-center">
+                                                        <div className="flex items-center justify-center gap-1">
+                                                            <input
+                                                                type="text"
+                                                                inputMode="numeric"
+                                                                pattern="[0-9]*"
+                                                                disabled={isDropped}
+                                                                value={effCredits}
+                                                                onChange={e => {
+                                                                    const raw = e.target.value.replace(/[^0-9]/g, '');
+                                                                    if (raw === '') return;
+                                                                    const n = Math.min(10, parseInt(raw, 10));
+                                                                    setCreditOverride(sub.subject_code, n);
+                                                                }}
+                                                                className="w-8 text-center text-xs font-mono rounded border py-0.5 focus:outline-none"
+                                                                style={{
+                                                                    color: isCreditChanged ? 'var(--accent)' : 'var(--text-secondary)',
+                                                                    backgroundColor: 'var(--surface-elevated)',
+                                                                    borderColor: isCreditChanged ? 'var(--accent)' : 'var(--border)',
+                                                                    opacity: isDropped ? 0.5 : 1,
+                                                                }}
+                                                            />
+                                                            {isCreditChanged && !isDropped && (
+                                                                <button onClick={() => clearCreditOverride(sub.subject_code)} title="Reset credits">
+                                                                    <RotateCcw size={10} style={{ color: 'var(--text-muted)' }} />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="text-center">
                                                         <button
@@ -813,122 +764,54 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted, onEdit }: B
 
 // ── Main Component ─────────────────────────────────────────
 export function Playground({ student }: PlaygroundProps) {
-    const [enabled, setEnabled] = useState(false);
-    const [step, setStep] = useState<'setup' | 'play'>('setup');
-    const [creditMap, setCreditMap] = useState<Record<string, number>>({});
-    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
-    const [isPredicted, setIsPredicted] = useState(false);
+    const tryItNow = () => {
+        setTimeout(() => document.getElementById('playground')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+    };
 
-    // Flatten semesters
-    const rawSemesters = useMemo(() => {
-        return (student.semesters || []).map(sem => ({
-            semester: sem.semester,
-            sgpa: sem.sgpa,
-            credits_secured: Number(sem.credits_secured) || 0,
-            subjects: (sem.subjects || []).map(s => ({
+    const semesters: PlaygroundSemester[] = useMemo(() => {
+        return (student.semesters || []).map(sem => {
+            const creditsSecured = Number(sem.credits_secured) || 0;
+            const subjects: SubjectWithCredits[] = (sem.subjects || []).map(s => ({
                 subject_code: s.subject_code,
                 grade: s.grade,
                 marks: s.marks,
-            })),
-        })).sort((a, b) => Number(a.semester) - Number(b.semester));
-    }, [student]);
-
-    // Auto-predict credits on mount
-    useEffect(() => {
-        const allSubjectCodes = rawSemesters.flatMap(sem => sem.subjects.map(s => s.subject_code));
-        if (allSubjectCodes.length === 0) return;
-
-        const predicted: Record<string, number> = {};
-        const touched = new Set<string>();
-
-        allSubjectCodes.forEach(code => {
-            predicted[code] = predictCredits(code);
-            touched.add(code);
-        });
-
-        setCreditMap(predicted);
-        setTouchedFields(touched);
-        setIsPredicted(true);
-        setStep('play');
-    }, [rawSemesters]);
-
-    const handleCreditChange = useCallback((code: string, val: number) => {
-        setTouchedFields(prev => {
-            const next = new Set(prev);
-            if (val === -1) next.delete(code);
-            else next.add(code);
-            return next;
-        });
-        setCreditMap(prev => ({ ...prev, [code]: val === -1 ? 0 : val }));
-    }, []);
-
-    const handleConfirm = () => setStep('play');
-    const handleEdit = () => setStep('setup');
-
-    const semesters: PlaygroundSemester[] = useMemo(() => {
-        return rawSemesters.map(sem => {
-            const subjects: SubjectWithCredits[] = sem.subjects.map(sub => ({
-                ...sub,
                 semester: sem.semester,
-                credits: creditMap[sub.subject_code] ?? predictCredits(sub.subject_code),
+                credits: predictCredits(s.subject_code),
             }));
             const predictedCredits = subjects.reduce((s, sub) => s + sub.credits, 0);
             return {
                 semester: sem.semester,
                 sgpa: sem.sgpa,
-                credits: sem.credits_secured > 0 ? sem.credits_secured : predictedCredits,
+                credits: creditsSecured > 0 ? creditsSecured : predictedCredits,
                 subjects,
             };
-        });
-    }, [rawSemesters, creditMap]);
+        }).sort((a, b) => Number(a.semester) - Number(b.semester));
+    }, [student]);
 
-    if (rawSemesters.length === 0 || rawSemesters.every(s => s.subjects.length === 0)) return null;
+    if (semesters.length === 0 || semesters.every(s => s.subjects.length === 0)) return null;
 
     return (
-        <div id="playground" className="card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 gap-3">
-                <div className="flex items-center gap-2 min-w-0">
-                    <FlaskConical size={16} style={{ color: enabled ? 'var(--accent)' : 'var(--text-muted)' }} />
+        <>
+            <PlaygroundIntroModal onTryItNow={tryItNow} />
+
+            <div id="playground" className="card overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-3">
+                    <FlaskConical size={16} style={{ color: 'var(--accent)' }} />
                     <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Playground Mode</p>
-                    {enabled && (
-                        <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold"
-                            style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success)' }}>
-                            LIVE
-                        </span>
-                    )}
+                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold ml-1"
+                        style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+                        Sandbox — nothing is saved
+                    </span>
                 </div>
-                <Switch checked={enabled} onChange={setEnabled} label="Toggle playground mode" />
+
+                <div className="px-4 pb-4 pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
+                    <PlaygroundBody
+                        semesters={semesters}
+                        officialCGPA={student.cgpa}
+                        creditsCompleted={student.credits_completed}
+                    />
+                </div>
             </div>
-
-            {!enabled && (
-                <div className="px-4 pb-4">
-                    <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                        Experiment freely: edit any semester&apos;s SGPA, drop up to 2 subjects, or set a CGPA goal to see the SGPA you&apos;ll need next semester. Nothing here is saved — it&apos;s just a sandbox.
-                    </p>
-                </div>
-            )}
-
-            {enabled && (
-                <div className="px-4 pb-4 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
-                    {step === 'setup' ? (
-                        <CreditSetupStep
-                            semesters={rawSemesters}
-                            creditMap={creditMap}
-                            touchedFields={touchedFields}
-                            onCreditChange={handleCreditChange}
-                            onConfirm={handleConfirm}
-                            isPredicted={isPredicted}
-                        />
-                    ) : (
-                        <PlaygroundBody
-                            semesters={semesters}
-                            officialCGPA={student.cgpa}
-                            creditsCompleted={student.credits_completed}
-                            onEdit={handleEdit}
-                        />
-                    )}
-                </div>
-            )}
-        </div>
+        </>
     );
 }

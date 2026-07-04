@@ -4,6 +4,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import HomeFilters from '@/components/HomeFilters';
 import StudentList from '@/components/StudentList';
 import { useCollege, getApiUrl } from '@/components/CollegeProvider';
+import { PlaygroundIntroModal } from '@/components/PlaygroundIntroModal';
 
 interface HomeContentProps {
     batches: string[];
@@ -149,6 +150,7 @@ export default function HomeContent({
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+            <PlaygroundIntroModal />
             <HomeFilters
                 batches={availableBatches}
                 branches={availableBranches}
