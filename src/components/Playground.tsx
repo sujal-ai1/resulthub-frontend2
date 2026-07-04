@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-    Info, AlertTriangle, ChevronRight, RotateCcw, MinusCircle,
+    Info, AlertTriangle, ChevronRight, RotateCcw, MinusCircle, Pencil,
     TrendingUp, Zap, FlaskConical, Goal, TriangleAlert, PartyPopper,
 } from 'lucide-react';
 import { Student } from '@/lib/data';
@@ -529,6 +529,15 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted }: BodyProps
 
     return (
         <div>
+            {/* Explicit affordance hint — the dashed grade/credit fields below
+                are easy to miss since they otherwise look like a read-only table */}
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg" style={{ backgroundColor: 'var(--accent-light)' }}>
+                <Pencil size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                <p className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
+                    Tap any grade or credit below (dashed boxes) to edit it — your CGPA updates live.
+                </p>
+            </div>
+
             {/* Auto-recommendation banner — always suggests the best 2 to drop,
                 recalculated against whatever grades are currently in effect */}
             {pairRecommendation && !(
@@ -669,11 +678,11 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted }: BodyProps
                                                                 value={effPoints}
                                                                 disabled={isDropped}
                                                                 onChange={e => setGradeOverride(sub.subject_code, Number(e.target.value))}
-                                                                className="text-xs font-bold rounded border py-0.5 focus:outline-none"
+                                                                className="text-xs font-bold rounded py-0.5 focus:outline-none"
                                                                 style={{
                                                                     color: isGradeChanged ? 'var(--accent)' : pointColor(effPoints),
                                                                     backgroundColor: 'var(--surface-elevated)',
-                                                                    borderColor: isGradeChanged ? 'var(--accent)' : 'var(--border)',
+                                                                    border: `1.5px dashed ${isGradeChanged ? 'var(--accent)' : 'var(--border-strong)'}`,
                                                                     opacity: isDropped ? 0.5 : 1,
                                                                 }}
                                                             >
@@ -702,11 +711,11 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted }: BodyProps
                                                                     const n = Math.min(10, parseInt(raw, 10));
                                                                     setCreditOverride(sub.subject_code, n);
                                                                 }}
-                                                                className="w-8 text-center text-xs font-mono rounded border py-0.5 focus:outline-none"
+                                                                className="w-8 text-center text-xs font-mono rounded py-0.5 focus:outline-none"
                                                                 style={{
                                                                     color: isCreditChanged ? 'var(--accent)' : 'var(--text-secondary)',
                                                                     backgroundColor: 'var(--surface-elevated)',
-                                                                    borderColor: isCreditChanged ? 'var(--accent)' : 'var(--border)',
+                                                                    border: `1.5px dashed ${isCreditChanged ? 'var(--accent)' : 'var(--border-strong)'}`,
                                                                     opacity: isDropped ? 0.5 : 1,
                                                                 }}
                                                             />
@@ -795,16 +804,17 @@ export function Playground({ student }: PlaygroundProps) {
             <PlaygroundIntroModal onTryItNow={tryItNow} />
 
             <div id="playground" className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3">
+                <div style={{ height: 3, background: 'linear-gradient(90deg, var(--accent), var(--accent-hover))' }} />
+                <div className="flex items-center gap-2 px-4 py-3" style={{ backgroundColor: 'var(--accent-light)' }}>
                     <FlaskConical size={16} style={{ color: 'var(--accent)' }} />
-                    <p className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>Playground Mode</p>
+                    <p className="font-bold text-sm" style={{ color: 'var(--accent)' }}>Playground Mode</p>
                     <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold ml-1"
-                        style={{ backgroundColor: 'var(--accent-light)', color: 'var(--accent)' }}>
+                        style={{ backgroundColor: 'var(--surface)', color: 'var(--accent)' }}>
                         Sandbox — nothing is saved
                     </span>
                 </div>
 
-                <div className="px-4 pb-4 pt-1 border-t" style={{ borderColor: 'var(--border)' }}>
+                <div className="px-4 pb-4 pt-3">
                     <PlaygroundBody
                         semesters={semesters}
                         officialCGPA={student.cgpa}

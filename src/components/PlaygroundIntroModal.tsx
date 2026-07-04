@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { FlaskConical, Sparkles, X } from 'lucide-react';
+import { FlaskConical, Sparkles, X, Pencil, MinusCircle, Goal } from 'lucide-react';
 
 const PLAYGROUND_INTRO_KEY = 'rh_playground_intro_count';
 const PLAYGROUND_INTRO_MAX_SHOWS = 2;
+
+const POINTS = [
+    { icon: Pencil, text: <>Tap any subject&apos;s <strong>grade</strong> to change it — your CGPA recalculates instantly.</> },
+    { icon: MinusCircle, text: <><strong>Drop up to 2 subjects</strong> and see exactly how much your CGPA moves.</> },
+    { icon: Goal, text: <>Set a <strong>target CGPA</strong> and find the SGPA you need in upcoming semesters.</> },
+    { icon: Sparkles, text: <>It&apos;s a pure sandbox — <strong>nothing here is ever saved</strong>.</> },
+];
 
 interface PlaygroundIntroModalProps {
     // Called (and the modal closed) when the user clicks the primary CTA.
@@ -43,10 +50,22 @@ export function PlaygroundIntroModal({ onTryItNow }: PlaygroundIntroModalProps) 
                 <p className="font-black text-base mb-1" style={{ color: 'var(--text-primary)' }}>
                     New: Playground Mode
                 </p>
-                <p className="text-sm leading-relaxed mb-4" style={{ color: 'var(--text-secondary)' }}>
-                    Experiment with your academic record risk-free — change any subject&apos;s grade, drop up to 2 subjects, or set a target CGPA and see exactly what SGPA you&apos;ll need. Nothing here is saved.
-                    {!onTryItNow && ' Open any student\'s profile to try it.'}
+                <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>
+                    Experiment with your academic record, risk-free:
                 </p>
+                <ul className="space-y-2 mb-4">
+                    {POINTS.map(({ icon: Icon, text }, i) => (
+                        <li key={i} className="flex items-start gap-2">
+                            <Icon size={14} style={{ color: 'var(--accent)', flexShrink: 0, marginTop: 2 }} />
+                            <span className="text-xs leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{text}</span>
+                        </li>
+                    ))}
+                </ul>
+                {!onTryItNow && (
+                    <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>
+                        Open any student&apos;s profile to try it.
+                    </p>
+                )}
                 <div className="flex gap-2">
                     <button
                         onClick={() => { setShow(false); onTryItNow?.(); }}

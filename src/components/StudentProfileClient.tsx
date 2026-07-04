@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Info, Sparkles, BarChart3, BookOpen, Users, Gift } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Info, Sparkles, BarChart3, BookOpen, Users, Gift, FlaskConical } from 'lucide-react';
 import { SgpaChart } from '@/components/Charts';
 import { RollNoSaver } from '@/components/RollNoSaver';
 import { Playground } from '@/components/Playground';
@@ -323,9 +323,16 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
                             {student.rollNo}
                         </p>
                     </div>
-                    <div className="flex flex-wrap gap-1.5 ml-auto">
+                    <div className="flex flex-wrap items-center gap-1.5 ml-auto">
                         <span className="badge badge-accent">{student.branch_code}</span>
                         <span className="badge badge-neutral">{student.year_of_study}</span>
+                        <button
+                            onClick={() => document.getElementById('playground')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                            className="btn-accent text-xs"
+                            style={{ height: 30, padding: '0 0.75rem' }}
+                        >
+                            <FlaskConical size={13} /> Playground
+                        </button>
                     </div>
                 </div>
             </div>
