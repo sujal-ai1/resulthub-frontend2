@@ -751,13 +751,13 @@ function PlaygroundBody({ semesters, officialCGPA, creditsCompleted }: BodyProps
                 />
             </div>
 
-            {droppedSubjects.length === MAX_DROPS && (
-                <div className="mt-3 flex items-center gap-1.5 text-xs font-medium"
-                    style={{ color: 'var(--warning)' }}>
-                    <AlertTriangle size={13} />
-                    Maximum drops reached. Click a dropped subject to restore it.
-                </div>
-            )}
+            <div
+                className="mt-3 flex items-center gap-1.5 text-xs font-medium"
+                style={{ color: 'var(--warning)', visibility: droppedSubjects.length === MAX_DROPS ? 'visible' : 'hidden' }}
+            >
+                <AlertTriangle size={13} />
+                Maximum drops reached. Click a dropped subject to restore it.
+            </div>
         </div>
     );
 }
