@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { ArrowLeft, TrendingUp, TrendingDown, Minus, Info, Sparkles, BarChart3, BookOpen, Users, Gift } from 'lucide-react';
 import { SgpaChart } from '@/components/Charts';
 import { RollNoSaver } from '@/components/RollNoSaver';
-import { SubjectDropSimulator } from '@/components/SubjectDropSimulator';
+import { Playground } from '@/components/Playground';
 import { useCollege } from '@/components/CollegeProvider';
-import { predictCredits, computeBestDrop, GRADE_POINTS, SubjectWithCredits } from '@/components/SubjectDropSimulator';
+import { predictCredits, computeBestDrop, GRADE_POINTS, SubjectWithCredits } from '@/components/Playground';
 import { fetchStudentProfile, Student, Score } from '@/lib/data';
 import { formatGrade } from '@/lib/utils';
 
@@ -357,13 +357,12 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
                                     className="min-w-0 px-3 py-2.5 cursor-pointer transition-colors"
                                     style={{ borderLeft: '1px solid var(--border)', backgroundColor: 'var(--success-bg)' }}
                                     onClick={() => {
-                                        const el = document.getElementById('subject-drop-simulator');
+                                        const el = document.getElementById('playground');
                                         if (el) {
-                                            el.setAttribute('open', '');
                                             setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
                                         }
                                     }}
-                                    title="Click to open Subject Drop Simulator"
+                                    title="Click to open Playground Mode"
                                 >
                                     <p className="section-label mb-1" style={{ fontSize: '10px', color: 'var(--success)' }}>AFTER DROP ↓</p>
                                     <p className="font-black text-lg leading-tight" style={{ color: 'var(--success)' }}>
@@ -636,7 +635,7 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
                 </div>
             )}
 
-            <SubjectDropSimulator student={student} />
+            <Playground student={student} />
         </div>
     );
 }
