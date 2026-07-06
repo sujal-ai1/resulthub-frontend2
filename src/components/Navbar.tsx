@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ThemeToggle } from './ThemeToggle';
 import { useState, useRef, useEffect } from 'react';
 import { useCollege, College, COLLEGE_LABELS } from './CollegeProvider';
@@ -127,21 +128,29 @@ function CollegeSwitch() {
 
 export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
+
+  const isLinkActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(href + '/');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b" style={{ backgroundColor: 'var(--surface)', borderColor: 'var(--border)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center gap-2">
         {/* Nav links — progressively revealed by screen width */}
         <nav className="flex items-center gap-0.5 min-w-0">
-          {navLinks.map(link => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`rh-nav-link whitespace-nowrap shrink-0 ${priorityVisibility[link.priority]}`}
-            >
-              {link.label}
-            </Link>
-          ))}
+          {navLinks.map(link => {
+            const active = isLinkActive(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`rh-nav-link whitespace-nowrap shrink-0 ${priorityVisibility[link.priority]}`}
+                style={active ? { color: 'var(--accent)', backgroundColor: 'var(--accent-light)', fontWeight: 600 } : undefined}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right: college selector + theme toggle + hamburger */}
