@@ -5,6 +5,7 @@ const BASE_URL = 'https://www.resulthubnsut.com';
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes = [
     { path: '/', priority: 1.0, changeFrequency: 'weekly' as const },
+    { path: '/dtu', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/result', priority: 0.9, changeFrequency: 'daily' as const },
     { path: '/analytics', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/compare', priority: 0.7, changeFrequency: 'weekly' as const },
@@ -14,7 +15,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: '/twin', priority: 0.6, changeFrequency: 'weekly' as const },
     { path: '/tools/cgpa-calculator', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/about', priority: 0.4, changeFrequency: 'monthly' as const },
-    { path: '/profile', priority: 0.5, changeFrequency: 'weekly' as const },
   ];
 
   return staticRoutes.map((route) => ({

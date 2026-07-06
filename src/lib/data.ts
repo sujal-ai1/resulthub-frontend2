@@ -186,6 +186,27 @@ export const fetchStudentProfile = async (rollNo: string, college: string = 'nsu
     return json.data;
 };
 
+// Server-side lookup for <title> generation: tries the given college first, then the
+// others, with cached responses so metadata fetches don't hammer the API.
+export const fetchStudentForMetadata = async (rollNo: string, college?: string): Promise<Student | null> => {
+    const colleges = ['nsut', 'dtu', 'igdtuw'];
+    const order = college && colleges.includes(college)
+        ? [college, ...colleges.filter((c) => c !== college)]
+        : colleges;
+
+    for (const c of order) {
+        try {
+            const res = await fetch(`${apiUrl(c)}/students/${rollNo}`, { next: { revalidate: 3600 } });
+            if (!res.ok) continue;
+            const json = await res.json();
+            if (json?.data?.name) return json.data;
+        } catch {
+            // API unreachable — fall through to the next college
+        }
+    }
+    return null;
+};
+
 export const fetchStats = async (college: string = 'nsut') => {
     const res = await fetch(`${apiUrl(college)}/stats`, { next: { revalidate: 3600 } });
     if (!res.ok) throw new Error('Failed to fetch stats');

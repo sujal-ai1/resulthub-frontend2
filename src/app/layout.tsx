@@ -31,12 +31,17 @@ const bungee = Bungee({
 
 export const metadata: Metadata = {
   title: {
-    default: 'ResultHubNSUT — NSUT, DTU & Delhi University Results, Analytics & Leaderboards',
-    template: '%s | ResultHubNSUT — NSUT, DTU & Delhi Results',
+    default: 'Result Hub DTU & NSUT — DTU, NSUT & Delhi Results, Analytics & Leaderboards',
+    template: '%s | Result Hub DTU & NSUT',
   },
   description:
-    'ResultHubNSUT is the #1 student-built academic platform for NSUT, DTU & Delhi colleges. Check results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, semester wrapped & more. ResultHubNSUT · ResultHubDTU · ResultHubDelhi.',
+    'Result Hub (ResultHub) is the #1 student-built platform for DTU, NSUT & Delhi colleges. Check DTU & NSUT results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, semester wrapped & more. Result Hub DTU · Result Hub NSUT · ResultHubDelhi.',
   keywords: [
+    'result hub',
+    'resulthub',
+    'result hub dtu',
+    'result hub nsut',
+    'result hub delhi',
     'ResultHubNSUT',
     'ResultHubDelhi',
     'ResultHubDTU',
@@ -46,8 +51,7 @@ export const metadata: Metadata = {
     'resulthub nsut',
     'resulthub dtu',
     'resulthub delhi',
-    'result hub nsut',
-    'result hub dtu',
+    'DTU result hub',
     'NSUT results',
     'DTU results',
     'NSUT leaderboard',
@@ -91,10 +95,10 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_IN',
     url: 'https://www.resulthubnsut.com',
-    siteName: 'ResultHubNSUT — NSUT, DTU & Delhi Results',
-    title: 'ResultHubNSUT — NSUT, DTU & Delhi University Results & Analytics',
+    siteName: 'Result Hub — DTU, NSUT & Delhi Results',
+    title: 'Result Hub DTU & NSUT — DTU, NSUT & Delhi Results & Analytics',
     description:
-      'The #1 student-built platform for NSUT, DTU & Delhi colleges — SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, wrapped & more.',
+      'Result Hub — the #1 student-built platform for DTU, NSUT & Delhi colleges. SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, wrapped & more.',
     images: [
       {
         url: '/og-image.png',
@@ -106,9 +110,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'ResultHubNSUT — NSUT, DTU & Delhi Results & Analytics',
+    title: 'Result Hub DTU & NSUT — DTU, NSUT & Delhi Results & Analytics',
     description:
-      'The #1 student-built platform for NSUT, DTU & Delhi colleges — leaderboards, analytics, compare, wrapped & more.',
+      'Result Hub — the #1 student-built platform for DTU, NSUT & Delhi colleges. Leaderboards, analytics, compare, wrapped & more.',
     images: ['/og-image.png'],
   },
   robots: {
@@ -146,10 +150,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'WebApplication',
-              name: 'ResultHub',
-              alternateName: ['ResultHubNSUT', 'ResultHubDTU', 'ResultHubDelhi', 'resulthubnust', 'resulthubdelhi', 'resulthubdtu'],
+              name: 'Result Hub',
+              alternateName: ['ResultHub', 'Result Hub DTU', 'Result Hub NSUT', 'Result Hub Delhi', 'ResultHubNSUT', 'ResultHubDTU', 'ResultHubDelhi', 'resulthubnust', 'resulthubdelhi', 'resulthubdtu'],
               url: 'https://www.resulthubnsut.com',
-              description: 'The #1 student-built academic platform for NSUT, DTU & Delhi colleges. Check results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins & more.',
+              description: 'Result Hub — the #1 student-built academic platform for DTU, NSUT & Delhi colleges. Check DTU & NSUT results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins & more.',
               applicationCategory: 'EducationalApplication',
               operatingSystem: 'Web',
               offers: { '@type': 'Offer', price: '0', priceCurrency: 'INR' },
@@ -172,7 +176,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'Organization',
-              name: 'ResultHub',
+              name: 'Result Hub',
+              alternateName: ['ResultHub', 'Result Hub DTU', 'Result Hub NSUT'],
               url: 'https://www.resulthubnsut.com',
               logo: 'https://www.resulthubnsut.com/og-image.png',
               sameAs: ['https://github.com/sujallchaudhary/Resulthubfrontend'],
@@ -200,6 +205,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <FooterBrand />
                 <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <Link href="/dtu" className="hover:underline">Result Hub DTU</Link>
                   <Link href="/analytics" className="hover:underline">Analytics</Link>
                   <Link href="/subjects" className="hover:underline">Subjects</Link>
                   <Link href="/wrapped" className="hover:underline">Wrapped</Link>

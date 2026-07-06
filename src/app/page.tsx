@@ -2,9 +2,9 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'ResultHubNSUT — NSUT, DTU & Delhi University Results, Analytics & Leaderboards',
+  title: 'Result Hub DTU & NSUT — DTU, NSUT & Delhi Results, Analytics & Leaderboards',
   description:
-    'ResultHubNSUT is the #1 student-built academic platform for NSUT, DTU & Delhi colleges. Check results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, semester wrapped & more. ResultHubNSUT · ResultHubDTU · ResultHubDelhi.',
+    'Result Hub (ResultHub) is the #1 student-built platform for DTU, NSUT & Delhi colleges. Check DTU & NSUT results, SGPA leaderboards, semester analytics, subject difficulty, compare students, academic twins, semester wrapped & more. Result Hub DTU · Result Hub NSUT.',
   alternates: { canonical: 'https://www.resulthubnsut.com' },
 };
 
@@ -47,6 +47,10 @@ const faqs = [
   {
     q: 'What colleges does ResultHubNSUT support?',
     a: 'ResultHubNSUT currently supports NSUT (Netaji Subhas University of Technology), DTU (Delhi Technological University), and IGDTUW (Indira Gandhi Delhi Technical University for Women).',
+  },
+  {
+    q: 'What is Result Hub DTU?',
+    a: 'Result Hub DTU is the DTU section of Result Hub — check any Delhi Technological University student\'s result, SGPA, and batch rank, plus DTU leaderboards, branch-wise analytics, subject difficulty maps, and a CGPA calculator. It\'s free for all DTU students.',
   },
   {
     q: 'What is Semester Wrapped on ResultHubNSUT?',
@@ -140,7 +144,7 @@ export default function LandingPage() {
           Everything You Need, One Platform
         </h2>
         <p className="text-center text-sm sm:text-base mb-10 max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
-          ResultHubNSUT &middot; ResultHubDTU &middot; ResultHubIGDTUW - built for Delhi&apos;s top engineering colleges.
+          Result Hub NSUT &middot; Result Hub DTU &middot; Result Hub IGDTUW - built for Delhi&apos;s top engineering colleges.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((f) => (
@@ -215,6 +219,14 @@ export default function LandingPage() {
               and the <em>CGPA Calculator</em> lets you plan ahead by simulating different grade scenarios.
             </p>
             <p>
+              At DTU? Head straight to{' '}
+              <Link href="/dtu" className="font-semibold hover:underline" style={{ color: 'var(--accent)' }}>
+                Result Hub DTU
+              </Link>{' '}
+              — a dedicated home for Delhi Technological University results, SGPA leaderboards, branch-wise
+              analytics, and subject difficulty maps.
+            </p>
+            <p>
               ResultHubNSUT is completely free, built and maintained by NSUT students who were tired of scattered data and
               clunky portals. Whether you&apos;re at{' '}
               <strong style={{ color: 'var(--text-primary)' }}>Netaji Subhas University of Technology</strong>,{' '}
@@ -279,8 +291,8 @@ export default function LandingPage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'WebSite',
-            name: 'ResultHub',
-            alternateName: ['ResultHubNSUT', 'ResultHubDTU', 'ResultHubDelhi', 'resulthubnust', 'resulthubdelhi', 'resulthubdtu'],
+            name: 'Result Hub',
+            alternateName: ['ResultHub', 'Result Hub DTU', 'Result Hub NSUT', 'Result Hub Delhi', 'ResultHubNSUT', 'ResultHubDTU', 'ResultHubDelhi', 'resulthubnust', 'resulthubdelhi', 'resulthubdtu'],
             url: 'https://www.resulthubnsut.com',
           }),
         }}

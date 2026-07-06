@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'About Result Hub — Built by Students, for Students',
+  description:
+    'Result Hub (ResultHub) is a free, student-built platform for DTU, NSUT & IGDTUW results, leaderboards, and analytics. Meet the team behind Result Hub DTU & NSUT.',
+  alternates: { canonical: 'https://www.resulthubnsut.com/about' },
+};
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft } from 'lucide-react';

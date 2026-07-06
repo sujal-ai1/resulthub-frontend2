@@ -1,3 +1,12 @@
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Compare DTU & NSUT Students — SGPA Comparison',
+  description:
+    'Compare DTU, NSUT & IGDTUW students side by side on Result Hub — SGPA across every semester, subject grades, and rank, all in one view.',
+  alternates: { canonical: 'https://www.resulthubnsut.com/compare' },
+};
+
 import { CompareSearchForm } from '@/components/CompareSearchForm';
 import { CompareGate } from '@/components/CompareGate';
 import { CompareResultsClient } from '@/components/CompareResultsClient';

@@ -1,5 +1,14 @@
 export const dynamic = 'force-dynamic';
 
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'Check DTU & NSUT Results — SGPA Leaderboards',
+  description:
+    'Check DTU, NSUT & IGDTUW semester results on Result Hub. Search by name or roll number to see SGPA, subject-wise grades, and batch rank — with sortable leaderboards by branch and batch.',
+  alternates: { canonical: 'https://www.resulthubnsut.com/result' },
+};
+
 import { Suspense } from 'react';
 import { fetchFilteredStudents, fetchFilterOptions, Student } from '@/lib/data';
 import HomeContent from '@/components/HomeContentClient';
