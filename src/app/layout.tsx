@@ -8,7 +8,7 @@ import { CollegeProvider } from '@/components/CollegeProvider';
 import { CollegePicker } from '@/components/CollegePicker';
 import { Navbar } from '@/components/Navbar';
 import { FooterBrand } from '@/components/FooterBrand';
-import { Analytics } from "@vercel/analytics/next"
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -188,7 +188,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body style={{ fontFamily: 'var(--font-inter), Inter, system-ui, sans-serif' }}>
         <ThemeProvider>
           <CollegeProvider isBot={isBot}>
-          <Analytics />
           <CollegePicker />
           <div className="min-h-screen flex flex-col overflow-x-hidden" style={{ backgroundColor: 'var(--background)' }}>
 
@@ -216,6 +215,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </CollegeProvider>
         </ThemeProvider>
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID && <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />}
     </html>
   );
 }

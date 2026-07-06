@@ -121,6 +121,56 @@ export function SemesterTrendChart({ data }: { data: any[] }) {
     );
 }
 
+export function MarksHistogramChart({ data }: { data: { range: string; count: number }[] }) {
+    return (
+        <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <BarChart data={data} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="range" stroke="#94a3b8" fontSize={12} />
+                    <YAxis stroke="#94a3b8" allowDecimals={false} />
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }} cursor={{ fill: '#334155', opacity: 0.4 }} />
+                    <Bar dataKey="count" name="Students" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+export function BranchAvgMarksChart({ data }: { data: { branch_code: string; avg_marks: number; total_students: number }[] }) {
+    const sorted = [...data].sort((a, b) => b.avg_marks - a.avg_marks);
+    return (
+        <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <BarChart data={sorted} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="branch_code" stroke="#94a3b8" fontSize={12} />
+                    <YAxis domain={[0, 10]} stroke="#94a3b8" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }} cursor={{ fill: '#334155', opacity: 0.4 }} />
+                    <Bar dataKey="avg_marks" name="Avg GPA" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
+export function SubjectYearTrendChart({ data }: { data: { year_of_study: string; avg_marks: number }[] }) {
+    const sorted = [...data].sort((a, b) => a.year_of_study.localeCompare(b.year_of_study));
+    return (
+        <div className="h-[280px] w-full">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <LineChart data={sorted} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                    <XAxis dataKey="year_of_study" stroke="#94a3b8" fontSize={12} />
+                    <YAxis domain={['dataMin - 0.5', 'dataMax + 0.5']} stroke="#94a3b8" />
+                    <Tooltip contentStyle={{ backgroundColor: '#1e293b', borderColor: '#334155', borderRadius: '8px' }} />
+                    <Line type="monotone" dataKey="avg_marks" name="Avg GPA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+                </LineChart>
+            </ResponsiveContainer>
+        </div>
+    );
+}
+
 export function TopPerformersByBranchChart({ data }: { data: { branch: string; count: number }[] }) {
     const sorted = [...data].sort((a, b) => b.count - a.count);
     return (

@@ -40,25 +40,32 @@ export interface Department {
     branchSize: number;
 }
 
-export interface SubjectDifficulty {
+export interface SubjectAnalytics {
     subject_code: string;
-    avg_marks: number;
     total_students: number;
+    avg_marks: number;
+    median_marks: number;
+    highest_marks: number;
+    lowest_marks: number;
+    std_dev: number;
+    pass_percentage: number;
+    fail_percentage: number;
     difficulty: 'Hard' | 'Medium' | 'Easy';
     is_killer: boolean;
     low_grade_percentage: number;
-    grade_distribution: {
-        'A'?: number;
-        'A+'?: number;
-        'B'?: number;
-        'B+'?: number;
-        'C'?: number;
-        'D'?: number;
-        'F'?: number;
-        'O'?: number;
-        'FD'?: number;
-        [key: string]: number | undefined;
+    grade_distribution: Record<string, number>;
+    grade_distribution_pct: Record<string, number>;
+    marks_histogram: { range: string; count: number }[];
+    branch_breakdown: { branch_code: string; total_students: number; avg_marks: number; low_grade_percentage: number }[];
+    semester_breakdown: { semester: number | string; total_students: number; avg_marks: number }[];
+    year_breakdown: { year_of_study: string; total_students: number; avg_marks: number; low_grade_percentage: number }[];
+    top_scorers: { roll_no: string; marks: number; grade: string; branch_code: string }[];
+    comparison: {
+        overall_avg_marks_all_subjects: number;
+        difference_from_overall: number;
+        harder_than_percentage: number;
     };
+    verdict: { label: string; reason: string };
 }
 
 export interface TwinData {
@@ -214,52 +221,25 @@ export const fetchStats = async (college: string = 'nsut') => {
     return json.data;
 };
 
-// Normalize dirty grade distribution keys from the API (e.g. 'c' → 'C', '0' → 'O')
-const normalizeGradeDistribution = (raw: Record<string, number>): SubjectDifficulty['grade_distribution'] => {
-    const out: SubjectDifficulty['grade_distribution'] = {};
-    for (const [k, v] of Object.entries(raw)) {
-        const key = k === '0' ? 'O' : k.toUpperCase();
-        out[key] = (out[key] ?? 0) + (v as number);
+export const fetchSubjectAnalytics = async (code: string, college: string = 'nsut'): Promise<SubjectAnalytics | null> => {
+    const res = await fetch(`${apiUrl(college)}/subjects/${encodeURIComponent(code.trim())}/analytics`, { cache: 'no-store' });
+    if (!res.ok) {
+        if (res.status === 404) return null;
+        throw new Error('Failed to fetch subject analytics');
     }
-    return out;
+    const json = await res.json();
+    return json.data;
 };
 
-export const fetchSubjectsDifficulty = async (params?: {
-    rollNo?: string;
-    semester?: number;
-    branch?: string;
-}, college: string = 'nsut'): Promise<SubjectDifficulty[]> => {
-    const base = apiUrl(college);
-    const baseQuery = new URLSearchParams();
-    if (params?.rollNo) baseQuery.append('rollNo', params.rollNo);
-    if (params?.semester) baseQuery.append('semester', params.semester.toString());
-    if (params?.branch) baseQuery.append('branch', params.branch);
-
-    baseQuery.set('page', '1');
-    const res1 = await fetch(`${base}/subjects/difficulty?${baseQuery}`, { cache: 'no-store' });
-    if (!res1.ok) return [];
-    const json1 = await res1.json();
-    const totalPages: number = json1.data?.pagination?.totalPages ?? json1.pagination?.totalPages ?? 1;
-    const page1Subjects: SubjectDifficulty[] = (json1.data?.subjects ?? []).map((s: any) => ({
-        ...s,
-        grade_distribution: normalizeGradeDistribution(s.grade_distribution ?? {}),
-    }));
-
-    if (totalPages <= 1) return page1Subjects;
-
-    const remainingFetches = Array.from({ length: totalPages - 1 }, (_, i) => {
-        const q = new URLSearchParams(baseQuery);
-        q.set('page', (i + 2).toString());
-        return fetch(`${base}/subjects/difficulty?${q}`, { cache: 'no-store' })
-            .then(r => r.ok ? r.json() : null)
-            .then(j => (j?.data?.subjects ?? []).map((s: any) => ({
-                ...s,
-                grade_distribution: normalizeGradeDistribution(s.grade_distribution ?? {}),
-            })));
-    });
-
-    const restPages = await Promise.all(remainingFetches);
-    return [...page1Subjects, ...restPages.flat()];
+export const fetchSubjectCodes = async (college: string = 'nsut'): Promise<string[]> => {
+    try {
+        const res = await fetch(`${apiUrl(college)}/subjects/codes`, { next: { revalidate: 3600 } });
+        if (!res.ok) return [];
+        const json = await res.json();
+        return json.data ?? [];
+    } catch {
+        return [];
+    }
 };
 
 export const fetchAcademicTwins = async (rollNo: string, limit: number = 5, college: string = 'nsut'): Promise<TwinsResponseData | null> => {

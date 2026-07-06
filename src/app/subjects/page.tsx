@@ -1,14 +1,13 @@
 import type { Metadata } from 'next';
+import { SubjectAnalyticsClient } from '@/components/SubjectAnalyticsClient';
 
 export const metadata: Metadata = {
-  title: 'DTU & NSUT Subject Difficulty — Grade Distributions',
+  title: 'DTU & NSUT Subject Lookup — Grade Distribution & Pass Rate',
   description:
-    'Find the toughest DTU & NSUT subjects on Result Hub — difficulty rankings built from real grade distributions and fail rates, so you know what to expect before electives.',
+    'Look up any DTU or NSUT subject code to see its historical grade distribution, pass rate, difficulty, and branch/batch breakdowns before you decide to take it.',
   alternates: { canonical: 'https://www.resulthubnsut.com/subjects' },
 };
 
-import { SubjectsClient } from '@/components/SubjectsClient';
-
 export default function SubjectsPage() {
-    return <SubjectsClient />;
+    return <SubjectAnalyticsClient />;
 }
