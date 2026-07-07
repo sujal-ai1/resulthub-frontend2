@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { Search, Loader2, AlertTriangle, ArrowLeft } from 'lucide-react';
 import { SubjectAnalytics, fetchSubjectAnalytics, fetchSubjectCodes } from '@/lib/data';
 import { formatGrade } from '@/lib/utils';
 import { useCollege } from '@/components/CollegeProvider';
 import { BrandHeading } from '@/components/BrandHeading';
+import { VERDICT_STYLES } from '@/lib/subjectVerdict';
 import {
     GradeDistributionChart,
     MarksHistogramChart,
@@ -21,12 +21,6 @@ const GRADE_COLORS: Record<string, string> = {
     D: '#EA580C', F: '#EF4444', FD: '#DC2626',
 };
 
-const VERDICT_STYLES: Record<string, { bg: string; text: string }> = {
-    'Safe Pick': { bg: '#ECFDF5', text: '#2D6A4F' },
-    'Moderate Pick': { bg: '#FFFBEB', text: '#B45309' },
-    'Risky Pick': { bg: '#FEF2F2', text: '#DC2626' },
-};
-
 function StatCard({ label, value, sub }: { label: string; value: string; sub?: string }) {
     return (
         <div className="card p-4">
@@ -38,7 +32,6 @@ function StatCard({ label, value, sub }: { label: string; value: string; sub?: s
 }
 
 export function SubjectAnalyticsClient({ initialCode }: { initialCode?: string }) {
-    const router = useRouter();
     const { college } = useCollege();
     const [code, setCode] = useState(initialCode ?? '');
     const [data, setData] = useState<SubjectAnalytics | null>(null);
@@ -80,7 +73,10 @@ export function SubjectAnalyticsClient({ initialCode }: { initialCode?: string }
             const result = await fetchSubjectAnalytics(cleaned, college);
             if (result) {
                 setData(result);
-                router.replace(`/subjects/${encodeURIComponent(cleaned)}`, { scroll: false });
+                // Update the address bar only — a router.replace() here would trigger a real
+                // Next.js navigation into /subjects/[code], remounting this component and
+                // firing its auto-load effect a second time.
+                window.history.replaceState(null, '', `/subjects/${encodeURIComponent(cleaned)}`);
             } else {
                 setData(null);
                 setError(`No historical records found for subject '${cleaned}'.`);
@@ -91,7 +87,7 @@ export function SubjectAnalyticsClient({ initialCode }: { initialCode?: string }
         } finally {
             setLoading(false);
         }
-    }, [college, router]);
+    }, [college]);
 
     // Auto-load when arriving via a direct URL like /subjects/CO201
     const didAutoLoad = useRef(false);
@@ -209,7 +205,7 @@ export function SubjectAnalyticsClient({ initialCode }: { initialCode?: string }
                 <AlertTriangle size={24} className="mx-auto mb-3" style={{ color: 'var(--danger)' }} />
                 <p className="font-semibold" style={{ color: 'var(--danger)' }}>{error ?? 'No data found.'}</p>
                 <div className="flex items-center justify-center gap-3 mt-4">
-                    <button onClick={() => { setSearched(false); setError(null); }} className="btn-ghost text-sm">
+                    <button onClick={() => { setSearched(false); setError(null); setCode(''); window.history.replaceState(null, '', '/subjects'); }} className="btn-ghost text-sm">
                         Try Another Subject
                     </button>
                 </div>
@@ -222,7 +218,7 @@ export function SubjectAnalyticsClient({ initialCode }: { initialCode?: string }
     return (
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-8">
             <button
-                onClick={() => { setSearched(false); setData(null); setError(null); }}
+                onClick={() => { setSearched(false); setData(null); setError(null); setCode(''); window.history.replaceState(null, '', '/subjects'); }}
                 className="inline-flex items-center gap-1.5 text-sm group"
                 style={{ color: 'var(--text-secondary)' }}
             >

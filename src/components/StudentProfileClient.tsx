@@ -8,6 +8,7 @@ import { RollNoSaver } from '@/components/RollNoSaver';
 import { Playground } from '@/components/Playground';
 import { useCollege } from '@/components/CollegeProvider';
 import { predictCredits, computeBestDrop, GRADE_POINTS, SubjectWithCredits } from '@/components/Playground';
+import { SubjectHoverLink } from '@/components/SubjectHoverLink';
 import { fetchStudentProfile, Student, Score } from '@/lib/data';
 import { formatGrade } from '@/lib/utils';
 
@@ -197,9 +198,7 @@ function SemesterSection({ semesters, scores }: {
                                                 style={isBest ? { borderLeft: '3px solid var(--success)' } : {}}
                                             >
                                                 <td>
-                                                    <span className="mono" style={{ color: 'var(--text-primary)' }}>
-                                                        {score.subject_code}
-                                                    </span>
+                                                    <SubjectHoverLink code={score.subject_code} className="mono" style={{ color: 'var(--text-primary)' }} />
                                                 </td>
                                                 <td className="text-center">
                                                     <GradeDot grade={score.grade} />
