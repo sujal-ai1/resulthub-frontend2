@@ -313,7 +313,15 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
             <RollNoSaver rollNo={student.rollNo} />
 
             <Link
-                href="/"
+                href="/result"
+                onClick={(e) => {
+                    // Prefer history back when the user came from within the site,
+                    // so the results list keeps its filters and page.
+                    if (window.history.length > 1 && document.referrer.startsWith(window.location.origin)) {
+                        e.preventDefault();
+                        window.history.back();
+                    }
+                }}
                 className="inline-flex items-center gap-1.5 text-sm mb-4 group"
                 style={{ color: 'var(--text-secondary)' }}
             >
