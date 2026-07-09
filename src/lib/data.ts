@@ -10,6 +10,7 @@ export interface Student {
     branch_rank: number;
     overall_rank?: number;
     filtered_rank?: number;
+    profile_views?: number;
     semesters?: Sgpa[];
 }
 
@@ -191,6 +192,18 @@ export const fetchStudentProfile = async (rollNo: string, college: string = 'nsu
     }
     const json = await res.json();
     return json.data;
+};
+
+// Increments a student's profile view counter; returns the updated count or null on failure.
+export const recordProfileView = async (rollNo: string, college: string = 'nsut'): Promise<number | null> => {
+    try {
+        const res = await fetch(`${apiUrl(college)}/students/${rollNo}/view`, { method: 'POST' });
+        if (!res.ok) return null;
+        const json = await res.json();
+        return json?.data?.profile_views ?? null;
+    } catch {
+        return null;
+    }
 };
 
 // Server-side lookup for <title> generation: tries the given college first, then the

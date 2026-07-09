@@ -2,14 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Info, Sparkles, BarChart3, BookOpen, Users, Gift, FlaskConical } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Info, Sparkles, BarChart3, BookOpen, Users, Gift, FlaskConical, Eye } from 'lucide-react';
 import { SgpaChart } from '@/components/Charts';
 import { RollNoSaver } from '@/components/RollNoSaver';
 import { Playground } from '@/components/Playground';
 import { useCollege } from '@/components/CollegeProvider';
 import { predictCredits, computeBestDrop, GRADE_POINTS, SubjectWithCredits } from '@/components/Playground';
 import { SubjectHoverLink } from '@/components/SubjectHoverLink';
-import { fetchStudentProfile, Student, Score } from '@/lib/data';
+import { fetchStudentProfile, recordProfileView, Student, Score } from '@/lib/data';
 import { formatGrade } from '@/lib/utils';
 
 // ── Grade colour mapping ──────────────────────────────────
@@ -230,13 +230,28 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
     const { college } = useCollege();
     const [student, setStudent] = useState<Student | null>(null);
     const [loading, setLoading] = useState(true);
+    const [viewCount, setViewCount] = useState<number | null>(null);
 
     useEffect(() => {
         setLoading(true);
         fetchStudentProfile(rollNo, college)
-            .then(setStudent)
+            .then((s) => {
+                setStudent(s);
+                if (s) setViewCount((prev) => prev ?? s.profile_views ?? 0);
+            })
             .catch(() => setStudent(null))
             .finally(() => setLoading(false));
+    }, [rollNo, college]);
+
+    // Count each profile at most once per browser session (also guards against
+    // React strict-mode double-firing effects in dev).
+    useEffect(() => {
+        const key = `pv:${college}:${rollNo}`;
+        if (sessionStorage.getItem(key)) return;
+        sessionStorage.setItem(key, '1');
+        recordProfileView(rollNo, college).then((count) => {
+            if (count !== null) setViewCount(count);
+        });
     }, [rollNo, college]);
 
     if (loading) {
@@ -323,6 +338,14 @@ export default function StudentProfileClient({ rollNo }: { rollNo: string }) {
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 ml-auto">
+                        {viewCount !== null && (
+                            <span
+                                className="badge badge-neutral inline-flex items-center gap-1"
+                                title={`This profile has been viewed ${viewCount.toLocaleString()} time${viewCount === 1 ? '' : 's'}`}
+                            >
+                                <Eye size={12} /> {viewCount.toLocaleString()}
+                            </span>
+                        )}
                         <span className="badge badge-accent">{student.branch_code}</span>
                         <span className="badge badge-neutral">{student.year_of_study}</span>
                         <button
